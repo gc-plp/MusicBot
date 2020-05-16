@@ -1,37 +1,44 @@
-FROM alpine:edge
+# Container that runs MusicBot with locally stored
+# Python files
+FROM ubuntu:18.04
+MAINTAINER gc-plp, plp.github@gmail.com
 
-# Add project source
-WORKDIR /usr/src/musicbot
-COPY . ./
+# Bot requirements
+RUN apt-get update && \
+    apt-get install -y \
+    build-essential \
+    unzip \
+    software-properties-common \
+    git \
+    ffmpeg \
+    libopus-dev \
+    libffi-dev \
+    libsodium-dev
 
-# Install dependencies
-RUN apk update \
-&& apk add --no-cache \
-  ca-certificates \
-  ffmpeg \
-  opus \
-  python3 \
-  libsodium-dev \
-\
-# Install build dependencies
-&& apk add --no-cache --virtual .build-deps \
-  gcc \
-  git \
-  libffi-dev \
-  make \
-  musl-dev \
-  python3-dev \
-\
-# Install pip dependencies
-&& pip3 install --no-cache-dir -r requirements.txt \
-&& pip3 install --upgrade --force-reinstall --version websockets==4.0.1 \
-\
-# Clean up build dependencies
-&& apk del .build-deps
+# pyenv requirements
+# https://github.com/pyenv/pyenv/wiki/common-build-problems
+RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    wget \
+    curl \
+    llvm \
+    libncurses5-dev \
+    libncursesw5-dev \
+    xz-utils \
+    tk-dev \
+    libffi-dev \
+    liblzma-dev \
+    python-openssl \
+    git
 
-# Create volume for mapping the config
-VOLUME /usr/src/musicbot/config
+VOLUME /bot
 
 ENV APP_ENV=docker
 
-ENTRYPOINT ["python3", "dockerentry.py"]
+COPY dockerentry.sh /dockerentry.sh
+ENTRYPOINT ["/dockerentry.sh"]
